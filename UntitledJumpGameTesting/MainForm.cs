@@ -92,8 +92,24 @@ namespace UntitledJumpGameTesting
             return inbounds;
         }
 
-        private bool IsTouchingWalls(List<Point> outerPoints, Platform platform)
+        private bool IsTouchingWalls(List<Point> outerPoints, Point centerPoint, int radius)
         {
+            //First need to get "Standard" form equation for a line between two points (Ax + By + C = 0)
+            for (int i = 0, j = 1; j < outerPoints.Count; i++, j++)
+            {
+                int A = outerPoints[i].Y - outerPoints[j].Y;
+                int B = outerPoints[j].X - outerPoints[i].X;
+                int C = (outerPoints[i].X * outerPoints[j].Y) - (outerPoints[j].X * outerPoints[i].Y);
+
+                double distance = Math.Abs(
+                    (A * centerPoint.X + B * centerPoint.Y + C) / Math.Sqrt(A * A + B * B));
+
+                //If distance to wall is shorter than radius, platform is touching a wall
+                //Maybe add min buffer distance here (Add to radius to enforce min distance from walls)
+                if (distance < radius)
+                    return true;
+            }
+
             return false;
         }
 
@@ -110,20 +126,25 @@ namespace UntitledJumpGameTesting
 
             while (currentPlatforms < maxPlatforms)
             {
-                var radius = random.Next(PlatformMinRadius, PlatformMaxRadius);
                 var centerPoint = new Point(random.Next(boundingBox.MinX, boundingBox.MaxX),
                         random.Next(boundingBox.MinY, boundingBox.MaxY));
 
+                //Maybe find way to merge InBounds check and TouchingWalls check into one method
+                //to reduce outerPoints copy's/method calls during generation
                 if (IsPointInBounds(outerPoints, centerPoint))
                 {
-                    platforms.Add(new Platform
-                    {
-                        Center = centerPoint,
-                        Radius = radius,
-                        Diameter = radius * 2
-                    });
+                    var radius = random.Next(PlatformMinRadius, PlatformMaxRadius);
 
-                    currentPlatforms++;
+                    if (!IsTouchingWalls(outerPoints, centerPoint, radius))
+                    {
+                        platforms.Add(new Platform
+                        {
+                            Center = centerPoint,
+                            Radius = radius,
+                            Diameter = radius * 2
+                        });
+                        currentPlatforms++;
+                    }
                 }
             }
 
