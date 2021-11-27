@@ -113,6 +113,22 @@ namespace UntitledJumpGameTesting
             return false;
         }
 
+        private bool IsTouchingPlatforms(List<Platform> platforms, Point centerPoint, int radius)
+        {
+            foreach (var platform in platforms)
+            {
+                //Pythagorean theorum
+                int xDiff = centerPoint.X - platform.Center.X;
+                int yDiff = centerPoint.Y - platform.Center.Y;
+                double distance = Math.Sqrt((xDiff * xDiff) + (yDiff * yDiff));
+
+                if (distance < (platform.Radius + radius))
+                    return true;
+            }
+
+            return false;
+        }
+
         private List<Platform> GeneratePlatforms(List<Point> outerPoints)
         {
             var platforms = new List<Platform>();
@@ -137,13 +153,17 @@ namespace UntitledJumpGameTesting
 
                     if (!IsTouchingWalls(outerPoints, centerPoint, radius))
                     {
-                        platforms.Add(new Platform
+                        //For sure clean this up to be one method (IsValidPlatformSpawn or something)
+                        if (!IsTouchingPlatforms(platforms, centerPoint, radius))
                         {
-                            Center = centerPoint,
-                            Radius = radius,
-                            Diameter = radius * 2
-                        });
-                        currentPlatforms++;
+                            platforms.Add(new Platform
+                            {
+                                Center = centerPoint,
+                                Radius = radius,
+                                Diameter = radius * 2
+                            });
+                            currentPlatforms++;
+                        }
                     }
                 }
             }
