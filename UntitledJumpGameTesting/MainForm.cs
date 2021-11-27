@@ -19,7 +19,7 @@ namespace UntitledJumpGameTesting
         //Simulation Params (Maybe customizable in future?)
         //Platform Radiuses should probably scale with window height like full radius
         private int PlatformMinRadius = 20;
-        private int PlatformMaxRadius = 50;
+        private int PlatformMaxRadius = 30;
         private int MinBufferDistance = 10;
 
         private bool DrawLayout = false;
@@ -97,8 +97,12 @@ namespace UntitledJumpGameTesting
         private bool IsTouchingWalls(List<Point> outerPoints, Point centerPoint, int radius)
         {
             //First need to get "Standard" form equation for a line between two points (Ax + By + C = 0)
-            for (int i = 0, j = 1; j < outerPoints.Count; i++, j++)
+            for (int i = 0, j = 1; i < outerPoints.Count; i++, j++)
             {
+                //Loops through checking the lines made up by adjacent points, on final iteration j is rest to 0
+                //so that the line between the final/first point is checked also
+                if (j == outerPoints.Count) j = 0;
+
                 int A = outerPoints[i].Y - outerPoints[j].Y;
                 int B = outerPoints[j].X - outerPoints[i].X;
                 int C = (outerPoints[i].X * outerPoints[j].Y) - (outerPoints[j].X * outerPoints[i].Y);
@@ -113,6 +117,21 @@ namespace UntitledJumpGameTesting
             }
 
             return false;
+        }
+
+        private void TestWalls(List<Point> outerPoints, Graphics graphics)
+        {
+            Pen pen = new Pen(Color.Green, 5);
+
+            //graphics.DrawLine(pen, outerPoints[0], outerPoints[1]);
+
+            for (int i = 0, j = 1; i < outerPoints.Count; i++, j++)
+            {
+                //On final iteration set j back to first point so that line between the end/start is checked also
+                if (j == outerPoints.Count) j = 0;
+
+                graphics.DrawLine(pen, outerPoints[i], outerPoints[j]);
+            }
         }
 
         private bool IsTouchingPlatforms(List<Platform> platforms, Point centerPoint, int radius)
