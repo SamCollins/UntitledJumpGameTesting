@@ -18,8 +18,8 @@ namespace UntitledJumpGameTesting
 
         //Simulation Params (Maybe customizable in future?)
         //Platform Radiuses should probably scale with window height like full radius
-        private int PlatformMinDiameter = 20;
-        private int PlatformMaxDiameter = 50;
+        private int PlatformMinRadius = 20;
+        private int PlatformMaxRadius = 50;
 
         private bool DrawLayout = false;
 
@@ -40,17 +40,14 @@ namespace UntitledJumpGameTesting
             WindowCenter = new Point(WindowWidth / 2, WindowHeight / 2);
         }
 
-        private List<Point> GetOuterPoints()
+        private List<Point> CalculatePoints(int radius, int numSides)
         {
-            //By making radius 40% of height full shape will take up ~80% of window
-            var radius = (WindowHeight / 5) * 2;
-
             List<Point> points = new List<Point>();
 
             for (int i = 0; i < NumSides; i++)
             {
-                var x = WindowCenter.X + (radius * Math.Cos(2 * Math.PI * i / NumSides));
-                var y = WindowCenter.Y + (radius * Math.Sin(2 * Math.PI * i / NumSides));
+                var x = WindowCenter.X + (radius * Math.Cos(2 * Math.PI * i / numSides));
+                var y = WindowCenter.Y + (radius * Math.Sin(2 * Math.PI * i / numSides));
                 points.Add(new Point((int)x, (int)y));
             }
 
@@ -95,6 +92,11 @@ namespace UntitledJumpGameTesting
             return inbounds;
         }
 
+        private bool IsTouchingWalls(List<Point> outerPoints, Platform platform)
+        {
+            return false;
+        }
+
         private List<Platform> GeneratePlatforms(List<Point> outerPoints)
         {
             var platforms = new List<Platform>();
@@ -108,8 +110,7 @@ namespace UntitledJumpGameTesting
 
             while (currentPlatforms < maxPlatforms)
             {
-                var diameter = random.Next(PlatformMinDiameter, PlatformMaxDiameter);
-                var radius = diameter / 2;
+                var radius = random.Next(PlatformMinRadius, PlatformMaxRadius);
                 var centerPoint = new Point(random.Next(boundingBox.MinX, boundingBox.MaxX),
                         random.Next(boundingBox.MinY, boundingBox.MaxY));
 
@@ -118,8 +119,8 @@ namespace UntitledJumpGameTesting
                     platforms.Add(new Platform
                     {
                         Center = centerPoint,
-                        Diameter = diameter,
-                        Radius = radius
+                        Radius = radius,
+                        Diameter = radius * 2
                     });
 
                     currentPlatforms++;
@@ -139,14 +140,17 @@ namespace UntitledJumpGameTesting
             Graphics graphics = e.Graphics;
             Pen pen = new Pen(Color.Black, 5);
 
-            var points = GetOuterPoints();
+            //By making radius 40% of height full shape will take up ~80% of window
+            var outerRadius = (WindowHeight / 5) * 2;
 
-            if (points.Count > 1 && DrawLayout)
+            var outerPerimeterPoints = CalculatePoints(outerRadius, NumSides);
+
+            if (outerPerimeterPoints.Count > 1 && DrawLayout)
             {
-                var platforms = GeneratePlatforms(points);
+                var platforms = GeneratePlatforms(outerPerimeterPoints);
                 DrawPlatforms(graphics, platforms);
 
-                graphics.DrawPolygon(pen, points.ToArray());
+                graphics.DrawPolygon(pen, outerPerimeterPoints.ToArray());
             }
 
             graphics.Dispose();
@@ -183,8 +187,8 @@ namespace UntitledJumpGameTesting
     public class Platform
     {
         public Point Center { get; set; }
-        public int Diameter { get; set; }
         public int Radius { get; set; }
+        public int Diameter { get; set; }
     }
 
     public class BoundingBox
