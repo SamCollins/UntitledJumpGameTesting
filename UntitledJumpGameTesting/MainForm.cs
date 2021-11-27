@@ -20,15 +20,17 @@ namespace UntitledJumpGameTesting
         //Platform Radiuses should probably scale with window height like full radius
         private int PlatformMinRadius = 20;
         private int PlatformMaxRadius = 50;
+        private int MinBufferDistance = 10;
 
         private bool DrawLayout = false;
 
         /*--- Next Steps ---
-         - Figure out way of telling if point is in/out of bounds
-         - Create 'Platform' class or struct of something (Just to store center point + radius)
          - Figure out way to get total area (Probably formula exists given list of vertices, maybe
            just split into a bunch of triangles using center point/radius for height?)
          - Figure out different amounts of platforms (low/med/high == 40/50/60 % of total area ???)
+         - Different Platform shapes (Hexagons, maybe others)
+         - Add More Textboxes for customizing values (Min/Max plat radius, Maybe buffer distance)
+         - Maybe figure out way to set default values for textboxes
          */
 
         public MainForm()
@@ -40,14 +42,14 @@ namespace UntitledJumpGameTesting
             WindowCenter = new Point(WindowWidth / 2, WindowHeight / 2);
         }
 
-        private List<Point> CalculatePoints(int radius, int numSides)
+        private List<Point> CalculatePoints(Point centerPoint, int radius, int numSides)
         {
             List<Point> points = new List<Point>();
 
             for (int i = 0; i < NumSides; i++)
             {
-                var x = WindowCenter.X + (radius * Math.Cos(2 * Math.PI * i / numSides));
-                var y = WindowCenter.Y + (radius * Math.Sin(2 * Math.PI * i / numSides));
+                var x = centerPoint.X + (radius * Math.Cos(2 * Math.PI * i / numSides));
+                var y = centerPoint.Y + (radius * Math.Sin(2 * Math.PI * i / numSides));
                 points.Add(new Point((int)x, (int)y));
             }
 
@@ -106,7 +108,7 @@ namespace UntitledJumpGameTesting
 
                 //If distance to wall is shorter than radius, platform is touching a wall
                 //Maybe add min buffer distance here (Add to radius to enforce min distance from walls)
-                if (distance < radius)
+                if (distance < radius + MinBufferDistance)
                     return true;
             }
 
@@ -122,7 +124,7 @@ namespace UntitledJumpGameTesting
                 int yDiff = centerPoint.Y - platform.Center.Y;
                 double distance = Math.Sqrt((xDiff * xDiff) + (yDiff * yDiff));
 
-                if (distance < (platform.Radius + radius))
+                if (distance < (platform.Radius + radius + MinBufferDistance))
                     return true;
             }
 
@@ -184,7 +186,7 @@ namespace UntitledJumpGameTesting
             //By making radius 40% of height full shape will take up ~80% of window
             var outerRadius = (WindowHeight / 5) * 2;
 
-            var outerPerimeterPoints = CalculatePoints(outerRadius, NumSides);
+            var outerPerimeterPoints = CalculatePoints(WindowCenter, outerRadius, NumSides);
 
             if (outerPerimeterPoints.Count > 1 && DrawLayout)
             {
@@ -199,12 +201,14 @@ namespace UntitledJumpGameTesting
 
         private void DrawPlatforms(Graphics graphics, List<Platform> platforms)
         {
-            //Pen pen = new Pen(Color.Red, 5);
+            Pen pen = new Pen(Color.Black, 5);
             SolidBrush brush = new SolidBrush(Color.Red);
 
             foreach (var platform in platforms)
             {
                 graphics.FillEllipse(brush, platform.Center.X - platform.Radius, platform.Center.Y - platform.Radius,
+                    platform.Diameter, platform.Diameter);
+                graphics.DrawEllipse(pen, platform.Center.X - platform.Radius, platform.Center.Y - platform.Radius,
                     platform.Diameter, platform.Diameter);
             }
         }
