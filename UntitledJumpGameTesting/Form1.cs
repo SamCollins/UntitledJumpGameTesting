@@ -10,7 +10,7 @@ using System.Windows.Forms;
 
 namespace UntitledJumpGameTesting
 {
-    public partial class Form1 : Form
+    public partial class MainForm : Form
     {
         //Set up values
         private int NumSides, WindowWidth, WindowHeight = 0;
@@ -31,7 +31,7 @@ namespace UntitledJumpGameTesting
          - Figure out different amounts of platforms (low/med/high == 40/50/60 % of total area ???)
          */
 
-        public Form1()
+        public MainForm()
         {
             InitializeComponent();
 
@@ -129,12 +129,12 @@ namespace UntitledJumpGameTesting
             return platforms;
         }
 
-        private void Form1_Load(object sender, EventArgs e)
+        private void MainForm_Load(object sender, EventArgs e)
         {
 
         }
 
-        private void Form1_Paint(object sender, PaintEventArgs e)
+        private void MainForm_Paint(object sender, PaintEventArgs e)
         {
             Graphics graphics = e.Graphics;
             Pen pen = new Pen(Color.Black, 5);

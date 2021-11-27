@@ -1,7 +1,7 @@
 ﻿
 namespace UntitledJumpGameTesting
 {
-    partial class Form1
+    partial class MainForm
     {
         /// <summary>
         ///  Required designer variable.
@@ -61,7 +61,7 @@ namespace UntitledJumpGameTesting
             this.NumSidesLabel.TabIndex = 2;
             this.NumSidesLabel.Text = "Num Sides";
             // 
-            // Form1
+            // MainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 20F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
@@ -69,10 +69,10 @@ namespace UntitledJumpGameTesting
             this.Controls.Add(this.NumSidesLabel);
             this.Controls.Add(this.NumSidesTextbox);
             this.Controls.Add(this.GenerateButton);
-            this.Name = "Form1";
+            this.Name = "MainForm";
             this.Text = "Platform Layout";
-            this.Load += new System.EventHandler(this.Form1_Load);
-            this.Paint += new System.Windows.Forms.PaintEventHandler(this.Form1_Paint);
+            this.Load += new System.EventHandler(this.MainForm_Load);
+            this.Paint += new System.Windows.Forms.PaintEventHandler(this.MainForm_Paint);
             this.ResumeLayout(false);
             this.PerformLayout();
 
