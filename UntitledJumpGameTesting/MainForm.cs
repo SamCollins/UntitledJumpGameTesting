@@ -18,9 +18,10 @@ namespace UntitledJumpGameTesting
 
         //Simulation Params (Maybe customizable in future?)
         //Platform Radiuses should probably scale with window height like full radius
-        private int PlatformMinRadius = 20;
-        private int PlatformMaxRadius = 30;
+        private int PlatformMinRadius = 10;
+        private int PlatformMaxRadius = 20;
         private int MinBufferDistance = 10;
+        private double PlatformAreaScale = 0.2; //Platforms will take up 40% of space
 
         private bool DrawLayout = false;
 
@@ -67,6 +68,20 @@ namespace UntitledJumpGameTesting
             };
 
             return boundingBox;
+        }
+
+        private double GetAreaOfPolygon(List<Point> points)
+        {
+            double area = 0;
+            int j = points.Count - 1;
+
+            for (int i = 0; i < points.Count; i++)
+            {
+                area += (points[j].X + points[i].X) * (points[j].Y - points[i].Y);
+                j = i;
+            }
+
+            return Math.Abs(area / 2);
         }
 
         private bool IsPointInBounds(List<Point> outerPoints, Point point)
@@ -119,21 +134,6 @@ namespace UntitledJumpGameTesting
             return false;
         }
 
-        private void TestWalls(List<Point> outerPoints, Graphics graphics)
-        {
-            Pen pen = new Pen(Color.Green, 5);
-
-            //graphics.DrawLine(pen, outerPoints[0], outerPoints[1]);
-
-            for (int i = 0, j = 1; i < outerPoints.Count; i++, j++)
-            {
-                //On final iteration set j back to first point so that line between the end/start is checked also
-                if (j == outerPoints.Count) j = 0;
-
-                graphics.DrawLine(pen, outerPoints[i], outerPoints[j]);
-            }
-        }
-
         private bool IsTouchingPlatforms(List<Platform> platforms, Point centerPoint, int radius)
         {
             foreach (var platform in platforms)
@@ -158,10 +158,17 @@ namespace UntitledJumpGameTesting
 
             Random random = new Random();
 
-            int maxPlatforms = 20;
-            int currentPlatforms = 0;
+            //Potential bug, if area scaling value too high, could end up with no valid placement
+            //for new platform, so even though limit isn't reached program will deadlock in
+            //infinite loop
+            double totalArea = GetAreaOfPolygon(outerPoints);
+            double maxPlatformArea = totalArea * PlatformAreaScale;
+            double combinedPlatformArea = 0;
 
-            while (currentPlatforms < maxPlatforms)
+            //int maxPlatforms = 20;
+            //int currentPlatforms = 0;
+
+            while (combinedPlatformArea < maxPlatformArea)
             {
                 var centerPoint = new Point(random.Next(boundingBox.MinX, boundingBox.MaxX),
                         random.Next(boundingBox.MinY, boundingBox.MaxY));
@@ -183,7 +190,9 @@ namespace UntitledJumpGameTesting
                                 Radius = radius,
                                 Diameter = radius * 2
                             });
-                            currentPlatforms++;
+                            //Adjust this when changing platforms to hexagons ??
+                            combinedPlatformArea += Math.PI * (radius * radius);
+                            //Console.WriteLine(combinedPlatformArea);
                         }
                     }
                 }
