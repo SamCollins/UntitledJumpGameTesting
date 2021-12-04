@@ -14,7 +14,7 @@ namespace UntitledJumpGameTesting
     public partial class MainForm : Form
     {
         //Set up values
-        private int WindowWidth, WindowHeight = 0;
+        private readonly int WindowWidth, WindowHeight = 0;
         private Point WindowCenter;
 
         //Simulation Params
@@ -27,6 +27,7 @@ namespace UntitledJumpGameTesting
         private int PlatformMaxRadius;
 
         //Generation Data
+        private int OuterPerimeterRadius;
         private List<Point> OuterPerimeterPoints = new List<Point>();
         private List<Platform> Platforms = new List<Platform>();
         private bool GenerationComplete = false;
@@ -39,7 +40,6 @@ namespace UntitledJumpGameTesting
          - Figure out different amounts of platforms (low/med/high == 40/50/60 % of total area ???)
          - Some type of control for switching between amounts of platforms (Dropdown?)
          - Different Platform shapes (Hexagons, maybe others)
-         - Add More Textboxes for customizing values (Min/Max plat radius, Maybe buffer distance)
          */
 
         public MainForm()
@@ -92,7 +92,7 @@ namespace UntitledJumpGameTesting
             return Math.Abs(area / 2);
         }
 
-        private bool IsValidSpawn(List<Point> outerPerimeterPoints, Point platCenterPoint, int platRadius, List<Platform> platforms)
+        private bool IsValidSpawn(List<Point> outerPerimeterPoints, Point platCenterPoint, int platRadius)
         {
             //Initially had BoundingBox check here, but removed since points are only generated using bounding box as min/max
 
@@ -133,9 +133,9 @@ namespace UntitledJumpGameTesting
                     return false;
             }
 
-            foreach (var platform in platforms)
+            foreach (var platform in Platforms)
             {
-                //Pythagorean theorum
+                //Pythagorean theorum to find distance between two points
                 int xDiff = platCenterPoint.X - platform.Center.X;
                 int yDiff = platCenterPoint.Y - platform.Center.Y;
                 double distance = Math.Sqrt((xDiff * xDiff) + (yDiff * yDiff));
@@ -149,11 +149,11 @@ namespace UntitledJumpGameTesting
             return true;
         }
 
-        private List<Platform> GeneratePlatforms(List<Point> outerPerimeterPoints)
+        private void GeneratePlatforms()
         {
             Debug.WriteLine("Generating Platforms...");
 
-            var platforms = new List<Platform>();
+            var outerPerimeterPoints = OuterPerimeterPoints;
             var boundingBox = GetBoundingBox(outerPerimeterPoints);
 
             Random random = new Random();
@@ -176,9 +176,9 @@ namespace UntitledJumpGameTesting
                         random.Next(boundingBox.MinY, boundingBox.MaxY));
                 var platRadius = random.Next(PlatformMinRadius, PlatformMaxRadius);
 
-                if (IsValidSpawn(outerPerimeterPoints, platCenterPoint, platRadius, platforms))
+                if (IsValidSpawn(outerPerimeterPoints, platCenterPoint, platRadius))
                 {
-                    platforms.Add(new Platform
+                    Platforms.Add(new Platform
                     {
                         Center = platCenterPoint,
                         Radius = platRadius,
@@ -190,8 +190,6 @@ namespace UntitledJumpGameTesting
             }
 
             Debug.WriteLine("Generation Complete");
-
-            return platforms;
         }
 
         private void MainForm_Load(object sender, EventArgs e)
@@ -200,6 +198,9 @@ namespace UntitledJumpGameTesting
             NumSides = 10;
             PlatformMinRadius = 10;
             PlatformMaxRadius = 20;
+
+            //By making radius 40% of height full shape will take up ~80% of window
+            OuterPerimeterRadius = (WindowHeight / 5) * 2;
 
             NumSidesTextbox.Text = NumSides.ToString();
             PlatMinRadTextbox.Text = PlatformMinRadius.ToString();
@@ -214,18 +215,18 @@ namespace UntitledJumpGameTesting
             if (GenerationComplete && OuterPerimeterPoints.Count > 1)
             {
                 graphics.DrawPolygon(pen, OuterPerimeterPoints.ToArray());
-                DrawPlatforms(graphics, Platforms);
+                DrawPlatforms(graphics);
             }
 
             graphics.Dispose();
         }
 
-        private void DrawPlatforms(Graphics graphics, List<Platform> platforms)
+        private void DrawPlatforms(Graphics graphics)
         {
             Pen pen = new Pen(Color.Black, 5);
             SolidBrush brush = new SolidBrush(Color.Red);
 
-            foreach (var platform in platforms)
+            foreach (var platform in Platforms)
             {
                 graphics.FillEllipse(brush, platform.Center.X - platform.Radius, platform.Center.Y - platform.Radius,
                     platform.Diameter, platform.Diameter);
@@ -253,16 +254,14 @@ namespace UntitledJumpGameTesting
 
         private void GenerateButton_Click(object sender, EventArgs e)
         {
-            //Add verification here (Is min/max rad > 0 && max > min) dont generate if not valid
-
-            //By making radius 40% of height full shape will take up ~80% of window
-            var outerRadius = (WindowHeight / 5) * 2;
-            OuterPerimeterPoints = CalculatePoints(WindowCenter, outerRadius, NumSides);
-            //Move calculation to inside Generate, probably stop passing outerPoints/platforms through params
-            Platforms = GeneratePlatforms(OuterPerimeterPoints);
-
-            GenerationComplete = true;
-
+            if (NumSides > 1 && PlatformMinRadius > 0 && PlatformMaxRadius > 0 && PlatformMinRadius <= PlatformMaxRadius)
+            {
+                Platforms = new List<Platform>();
+                OuterPerimeterPoints = CalculatePoints(WindowCenter, OuterPerimeterRadius, NumSides);
+                GeneratePlatforms();
+                GenerationComplete = true;
+            }
+            
             Refresh();
         }
 
