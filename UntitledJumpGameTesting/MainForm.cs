@@ -92,116 +92,100 @@ namespace UntitledJumpGameTesting
             return Math.Abs(area / 2);
         }
 
-        private bool IsPointInBounds(List<Point> outerPoints, Point point)
+        private bool IsValidSpawn(List<Point> outerPerimeterPoints, Point platCenterPoint, int platRadius, List<Platform> platforms)
         {
-            //Maybe Disable BoundingBox logic here since already taken care of during generate
-            //var boundingBox = GetBoundingBox(outerPoints);
+            //Initially had BoundingBox check here, but removed since points are only generated using bounding box as min/max
 
-            //if (point.X < boundingBox.MinX || point.X > boundingBox.MaxX
-            //    || point.Y < boundingBox.MinY || point.Y > boundingBox.MaxY)
-            //{
-            //    return false;
-            //}
-
+            //Is Point in Polygon check, uses raycasting/edge crossing algorithm (Count how many edges are between a ray from
+            //outside the polygon to the point, if odd the point is inside, if even the point is outside)
             bool inbounds = false;
-
-            for (int i = 0, j = outerPoints.Count - 1; i < outerPoints.Count; j = i++)
+            for (int i = 0, j = outerPerimeterPoints.Count - 1; i < outerPerimeterPoints.Count; j = i++)
             {
-                if ((outerPoints[i].Y > point.Y) != (outerPoints[j].Y > point.Y) &&
-                    point.X < (outerPoints[j].X - outerPoints[i].X) * (point.Y - outerPoints[i].Y) / (outerPoints[j].Y - outerPoints[i].Y) + outerPoints[i].X)
+                if ((outerPerimeterPoints[i].Y > platCenterPoint.Y) != (outerPerimeterPoints[j].Y > platCenterPoint.Y) &&
+                        platCenterPoint.X < (outerPerimeterPoints[j].X - outerPerimeterPoints[i].X) * (platCenterPoint.Y - outerPerimeterPoints[i].Y) 
+                            / (outerPerimeterPoints[j].Y - outerPerimeterPoints[i].Y) + outerPerimeterPoints[i].X)
                 {
                     inbounds = !inbounds;
                 }
             }
 
-            return inbounds;
-        }
+            //If center point not in bounds the spawn is not valid
+            if (!inbounds)
+                return false;
 
-        private bool IsTouchingWalls(List<Point> outerPoints, Point centerPoint, int radius)
-        {
             //First need to get "Standard" form equation for a line between two points (Ax + By + C = 0)
-            for (int i = 0, j = 1; i < outerPoints.Count; i++, j++)
+            for (int i = 0, j = 1; i < outerPerimeterPoints.Count; i++, j++)
             {
                 //Loops through checking the lines made up by adjacent points, on final iteration j is rest to 0
                 //so that the line between the final/first point is checked also
-                if (j == outerPoints.Count) j = 0;
+                if (j == outerPerimeterPoints.Count) j = 0;
 
-                int A = outerPoints[i].Y - outerPoints[j].Y;
-                int B = outerPoints[j].X - outerPoints[i].X;
-                int C = (outerPoints[i].X * outerPoints[j].Y) - (outerPoints[j].X * outerPoints[i].Y);
+                int A = outerPerimeterPoints[i].Y - outerPerimeterPoints[j].Y;
+                int B = outerPerimeterPoints[j].X - outerPerimeterPoints[i].X;
+                int C = (outerPerimeterPoints[i].X * outerPerimeterPoints[j].Y) - (outerPerimeterPoints[j].X * outerPerimeterPoints[i].Y);
 
                 double distance = Math.Abs(
-                    (A * centerPoint.X + B * centerPoint.Y + C) / Math.Sqrt(A * A + B * B));
+                    (A * platCenterPoint.X + B * platCenterPoint.Y + C) / Math.Sqrt(A * A + B * B));
 
-                //If distance to wall is shorter than radius, platform is touching a wall
-                //Maybe add min buffer distance here (Add to radius to enforce min distance from walls)
-                if (distance < radius + MinBufferDistance)
-                    return true;
+                //If distance to any wall is shorter than new platform radius + buffer distance
+                //platform is touching a wall and spawn isn't valid
+                if (distance < platRadius + MinBufferDistance)
+                    return false;
             }
 
-            return false;
-        }
-
-        private bool IsTouchingPlatforms(List<Platform> platforms, Point centerPoint, int radius)
-        {
             foreach (var platform in platforms)
             {
                 //Pythagorean theorum
-                int xDiff = centerPoint.X - platform.Center.X;
-                int yDiff = centerPoint.Y - platform.Center.Y;
+                int xDiff = platCenterPoint.X - platform.Center.X;
+                int yDiff = platCenterPoint.Y - platform.Center.Y;
                 double distance = Math.Sqrt((xDiff * xDiff) + (yDiff * yDiff));
 
-                if (distance < (platform.Radius + radius + MinBufferDistance))
-                    return true;
+                //If distance between any platform center and new platform center is less than both platform
+                //radiuses combined then platforms are overlapping and spawn isn't valid
+                if (distance < (platform.Radius + platRadius + MinBufferDistance))
+                    return false;
             }
 
-            return false;
+            return true;
         }
 
-        private List<Platform> GeneratePlatforms(List<Point> outerPoints)
+        private List<Platform> GeneratePlatforms(List<Point> outerPerimeterPoints)
         {
             Debug.WriteLine("Generating Platforms...");
 
             var platforms = new List<Platform>();
-
-            var boundingBox = GetBoundingBox(outerPoints);
+            var boundingBox = GetBoundingBox(outerPerimeterPoints);
 
             Random random = new Random();
 
             //Potential bug, if area scaling value too high, could end up with no valid placement
             //for new platform, so even though limit isn't reached program will deadlock in
             //infinite loop, can also get locked if plat min radius is too small (2)
-            double totalArea = GetAreaOfPolygon(outerPoints);
+            //probably cause the added buffer makes no valid spots since so many small plats
+            //Fix will be something like counter/failsafe that checks how many times it tries and fails
+            //to find a valid spot, then breaking loop once that limit is hit. Maybe also include a
+            //min/max of the platform area that needs to be hit, like if it cant find any valid spots
+            //but its at like 80-90% of platform area you can call it good and move on
+            double totalArea = GetAreaOfPolygon(outerPerimeterPoints);
             double maxPlatformArea = totalArea * PlatformAreaScale;
             double combinedPlatformArea = 0;
 
             while (combinedPlatformArea < maxPlatformArea)
             {
-                var centerPoint = new Point(random.Next(boundingBox.MinX, boundingBox.MaxX),
+                var platCenterPoint = new Point(random.Next(boundingBox.MinX, boundingBox.MaxX),
                         random.Next(boundingBox.MinY, boundingBox.MaxY));
+                var platRadius = random.Next(PlatformMinRadius, PlatformMaxRadius);
 
-                //Maybe find way to merge InBounds check and TouchingWalls check into one method
-                //to reduce outerPoints copy's/method calls during generation
-                if (IsPointInBounds(outerPoints, centerPoint))
+                if (IsValidSpawn(outerPerimeterPoints, platCenterPoint, platRadius, platforms))
                 {
-                    var radius = random.Next(PlatformMinRadius, PlatformMaxRadius);
-
-                    if (!IsTouchingWalls(outerPoints, centerPoint, radius))
+                    platforms.Add(new Platform
                     {
-                        //For sure clean this up to be one method (IsValidPlatformSpawn or something)
-                        if (!IsTouchingPlatforms(platforms, centerPoint, radius))
-                        {
-                            platforms.Add(new Platform
-                            {
-                                Center = centerPoint,
-                                Radius = radius,
-                                Diameter = radius * 2
-                            });
-                            //Adjust this when changing platforms to hexagons ??
-                            combinedPlatformArea += Math.PI * (radius * radius);
-                            //Console.WriteLine(combinedPlatformArea);
-                        }
-                    }
+                        Center = platCenterPoint,
+                        Radius = platRadius,
+                        Diameter = platRadius * 2
+                    });
+                    //Adjust this when changing platforms to hexagons ??
+                    combinedPlatformArea += Math.PI * (platRadius * platRadius);
                 }
             }
 
@@ -274,6 +258,7 @@ namespace UntitledJumpGameTesting
             //By making radius 40% of height full shape will take up ~80% of window
             var outerRadius = (WindowHeight / 5) * 2;
             OuterPerimeterPoints = CalculatePoints(WindowCenter, outerRadius, NumSides);
+            //Move calculation to inside Generate, probably stop passing outerPoints/platforms through params
             Platforms = GeneratePlatforms(OuterPerimeterPoints);
 
             GenerationComplete = true;
