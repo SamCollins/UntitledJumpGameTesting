@@ -32,11 +32,13 @@ namespace UntitledJumpGameTesting
             this.GenerateButton = new System.Windows.Forms.Button();
             this.NumSidesTextbox = new System.Windows.Forms.TextBox();
             this.NumSidesLabel = new System.Windows.Forms.Label();
+            this.TimeDisplay = new System.Windows.Forms.Label();
+            this.StartButton = new System.Windows.Forms.Button();
             this.SuspendLayout();
             // 
             // GenerateButton
             // 
-            this.GenerateButton.Location = new System.Drawing.Point(676, 12);
+            this.GenerateButton.Location = new System.Drawing.Point(676, 9);
             this.GenerateButton.Name = "GenerateButton";
             this.GenerateButton.Size = new System.Drawing.Size(94, 29);
             this.GenerateButton.TabIndex = 0;
@@ -61,11 +63,32 @@ namespace UntitledJumpGameTesting
             this.NumSidesLabel.TabIndex = 2;
             this.NumSidesLabel.Text = "Num Sides";
             // 
+            // TimeDisplay
+            // 
+            this.TimeDisplay.AutoSize = true;
+            this.TimeDisplay.Location = new System.Drawing.Point(12, 36);
+            this.TimeDisplay.Name = "TimeDisplay";
+            this.TimeDisplay.Size = new System.Drawing.Size(103, 20);
+            this.TimeDisplay.TabIndex = 4;
+            this.TimeDisplay.Text = "Time: 00:00:00";
+            // 
+            // StartButton
+            // 
+            this.StartButton.Location = new System.Drawing.Point(676, 45);
+            this.StartButton.Name = "StartButton";
+            this.StartButton.Size = new System.Drawing.Size(94, 29);
+            this.StartButton.TabIndex = 5;
+            this.StartButton.Text = "Start";
+            this.StartButton.UseVisualStyleBackColor = true;
+            this.StartButton.Click += new System.EventHandler(this.StartButton_Click);
+            // 
             // MainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 20F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(782, 753);
+            this.Controls.Add(this.StartButton);
+            this.Controls.Add(this.TimeDisplay);
             this.Controls.Add(this.NumSidesLabel);
             this.Controls.Add(this.NumSidesTextbox);
             this.Controls.Add(this.GenerateButton);
@@ -83,6 +106,8 @@ namespace UntitledJumpGameTesting
         private System.Windows.Forms.Button GenerateButton;
         private System.Windows.Forms.TextBox NumSidesTextbox;
         private System.Windows.Forms.Label NumSidesLabel;
+        private System.Windows.Forms.Label TimeDisplay;
+        private System.Windows.Forms.Button StartButton;
     }
 }
 

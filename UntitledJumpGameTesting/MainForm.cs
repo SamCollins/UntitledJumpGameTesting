@@ -25,6 +25,10 @@ namespace UntitledJumpGameTesting
 
         private bool DrawLayout = false;
 
+        private Timer Timer;
+        private DateTime StartTime;
+        private bool IsTimerRunning = false;
+
         /*--- Next Steps ---
          - Figure out way to get total area (Probably formula exists given list of vertices, maybe
            just split into a bunch of triangles using center point/radius for height?)
@@ -203,7 +207,7 @@ namespace UntitledJumpGameTesting
 
         private void MainForm_Load(object sender, EventArgs e)
         {
-
+            
         }
 
         private void MainForm_Paint(object sender, PaintEventArgs e)
@@ -239,6 +243,23 @@ namespace UntitledJumpGameTesting
                 graphics.DrawEllipse(pen, platform.Center.X - platform.Radius, platform.Center.Y - platform.Radius,
                     platform.Diameter, platform.Diameter);
             }
+        }
+
+        private void Timer_Tick(object sender, EventArgs e)
+        {
+            TimeDisplay.Text = string.Format(@"Time : {0:mm\:ss\.ff}", (DateTime.Now - StartTime));
+        }
+
+        private void StartButton_Click(object sender, EventArgs e)
+        {
+            Timer = new Timer
+            {
+                Interval = 100
+            };
+            Timer.Tick += new EventHandler(Timer_Tick);
+            StartTime = DateTime.Now;
+            Timer.Start();
+            IsTimerRunning = true;
         }
 
         private void GenerateButton_Click(object sender, EventArgs e)
