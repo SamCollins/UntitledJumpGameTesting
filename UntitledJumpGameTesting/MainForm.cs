@@ -13,11 +13,12 @@ namespace UntitledJumpGameTesting
     public partial class MainForm : Form
     {
         //Set up values
-        private int NumSides, WindowWidth, WindowHeight = 0;
+        private int WindowWidth, WindowHeight = 0;
         private Point WindowCenter;
 
         //Simulation Params (Maybe customizable in future?)
         //Platform Radiuses should probably scale with window height like full radius
+        private int NumSides = 16;
         private int PlatformMinRadius = 10;
         private int PlatformMaxRadius = 20;
         private int MinBufferDistance = 10;
@@ -30,12 +31,10 @@ namespace UntitledJumpGameTesting
         private bool IsTimerRunning = false;
 
         /*--- Next Steps ---
-         - Figure out way to get total area (Probably formula exists given list of vertices, maybe
-           just split into a bunch of triangles using center point/radius for height?)
          - Figure out different amounts of platforms (low/med/high == 40/50/60 % of total area ???)
+         - Some type of control for switching between amounts of platforms (Dropdown?)
          - Different Platform shapes (Hexagons, maybe others)
          - Add More Textboxes for customizing values (Min/Max plat radius, Maybe buffer distance)
-         - Maybe figure out way to set default values for textboxes
          */
 
         public MainForm()
@@ -51,7 +50,7 @@ namespace UntitledJumpGameTesting
         {
             List<Point> points = new List<Point>();
 
-            for (int i = 0; i < NumSides; i++)
+            for (int i = 0; i < numSides; i++)
             {
                 var x = centerPoint.X + (radius * Math.Cos(2 * Math.PI * i / numSides));
                 var y = centerPoint.Y + (radius * Math.Sin(2 * Math.PI * i / numSides));
@@ -207,7 +206,7 @@ namespace UntitledJumpGameTesting
 
         private void MainForm_Load(object sender, EventArgs e)
         {
-            
+            NumSidesTextbox.Text = NumSides.ToString();
         }
 
         private void MainForm_Paint(object sender, PaintEventArgs e)
