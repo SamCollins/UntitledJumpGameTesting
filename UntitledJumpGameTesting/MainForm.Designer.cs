@@ -34,6 +34,10 @@ namespace UntitledJumpGameTesting
             this.NumSidesLabel = new System.Windows.Forms.Label();
             this.TimeDisplay = new System.Windows.Forms.Label();
             this.StartButton = new System.Windows.Forms.Button();
+            this.PlatMinRadLabel = new System.Windows.Forms.Label();
+            this.PlatMinRadTextbox = new System.Windows.Forms.TextBox();
+            this.PlatMaxRadLabel = new System.Windows.Forms.Label();
+            this.PlatMaxRadTextbox = new System.Windows.Forms.TextBox();
             this.SuspendLayout();
             // 
             // GenerateButton
@@ -50,7 +54,7 @@ namespace UntitledJumpGameTesting
             // 
             this.NumSidesTextbox.Location = new System.Drawing.Point(98, 6);
             this.NumSidesTextbox.Name = "NumSidesTextbox";
-            this.NumSidesTextbox.Size = new System.Drawing.Size(58, 27);
+            this.NumSidesTextbox.Size = new System.Drawing.Size(50, 27);
             this.NumSidesTextbox.TabIndex = 1;
             this.NumSidesTextbox.TextChanged += new System.EventHandler(this.NumSidesTextbox_TextChanged);
             // 
@@ -70,7 +74,7 @@ namespace UntitledJumpGameTesting
             this.TimeDisplay.Name = "TimeDisplay";
             this.TimeDisplay.Size = new System.Drawing.Size(103, 20);
             this.TimeDisplay.TabIndex = 4;
-            this.TimeDisplay.Text = "Time: 00:00:00";
+            this.TimeDisplay.Text = "Time: 00:00.00";
             // 
             // StartButton
             // 
@@ -82,11 +86,49 @@ namespace UntitledJumpGameTesting
             this.StartButton.UseVisualStyleBackColor = true;
             this.StartButton.Click += new System.EventHandler(this.StartButton_Click);
             // 
+            // PlatMinRadLabel
+            // 
+            this.PlatMinRadLabel.AutoSize = true;
+            this.PlatMinRadLabel.Location = new System.Drawing.Point(170, 9);
+            this.PlatMinRadLabel.Name = "PlatMinRadLabel";
+            this.PlatMinRadLabel.Size = new System.Drawing.Size(111, 20);
+            this.PlatMinRadLabel.TabIndex = 6;
+            this.PlatMinRadLabel.Text = "Plat Min Radius";
+            // 
+            // PlatMinRadTextbox
+            // 
+            this.PlatMinRadTextbox.Location = new System.Drawing.Point(288, 6);
+            this.PlatMinRadTextbox.Name = "PlatMinRadTextbox";
+            this.PlatMinRadTextbox.Size = new System.Drawing.Size(50, 27);
+            this.PlatMinRadTextbox.TabIndex = 7;
+            this.PlatMinRadTextbox.TextChanged += new System.EventHandler(this.PlatMinRadTextbox_TextChanged);
+            // 
+            // PlatMaxRadLabel
+            // 
+            this.PlatMaxRadLabel.AutoSize = true;
+            this.PlatMaxRadLabel.Location = new System.Drawing.Point(371, 9);
+            this.PlatMaxRadLabel.Name = "PlatMaxRadLabel";
+            this.PlatMaxRadLabel.Size = new System.Drawing.Size(114, 20);
+            this.PlatMaxRadLabel.TabIndex = 8;
+            this.PlatMaxRadLabel.Text = "Plat Max Radius";
+            // 
+            // PlatMaxRadTextbox
+            // 
+            this.PlatMaxRadTextbox.Location = new System.Drawing.Point(492, 6);
+            this.PlatMaxRadTextbox.Name = "PlatMaxRadTextbox";
+            this.PlatMaxRadTextbox.Size = new System.Drawing.Size(50, 27);
+            this.PlatMaxRadTextbox.TabIndex = 9;
+            this.PlatMaxRadTextbox.TextChanged += new System.EventHandler(this.PlatMaxRadTextbox_TextChanged);
+            // 
             // MainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 20F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(782, 753);
+            this.Controls.Add(this.PlatMaxRadTextbox);
+            this.Controls.Add(this.PlatMaxRadLabel);
+            this.Controls.Add(this.PlatMinRadTextbox);
+            this.Controls.Add(this.PlatMinRadLabel);
             this.Controls.Add(this.StartButton);
             this.Controls.Add(this.TimeDisplay);
             this.Controls.Add(this.NumSidesLabel);
@@ -108,6 +150,10 @@ namespace UntitledJumpGameTesting
         private System.Windows.Forms.Label NumSidesLabel;
         private System.Windows.Forms.Label TimeDisplay;
         private System.Windows.Forms.Button StartButton;
+        private System.Windows.Forms.Label PlatMinRadLabel;
+        private System.Windows.Forms.TextBox PlatMinRadTextbox;
+        private System.Windows.Forms.Label PlatMaxRadLabel;
+        private System.Windows.Forms.TextBox PlatMaxRadTextbox;
     }
 }
 

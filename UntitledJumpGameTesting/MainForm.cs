@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
+using System.Diagnostics;
 using System.Drawing;
 using System.Linq;
 using System.Text;
@@ -16,15 +17,19 @@ namespace UntitledJumpGameTesting
         private int WindowWidth, WindowHeight = 0;
         private Point WindowCenter;
 
-        //Simulation Params (Maybe customizable in future?)
-        //Platform Radiuses should probably scale with window height like full radius
-        private int NumSides = 16;
-        private int PlatformMinRadius = 10;
-        private int PlatformMaxRadius = 20;
+        //Simulation Params
         private int MinBufferDistance = 10;
-        private double PlatformAreaScale = 0.2; //Platforms will take up 40% of space
+        private double PlatformAreaScale = 0.2; //Platforms will take up 20% of space
 
-        private bool DrawLayout = false;
+        //Customizable Params (Set from textboxes)
+        private int NumSides;
+        private int PlatformMinRadius;
+        private int PlatformMaxRadius;
+
+        //Generation Data
+        private List<Point> OuterPerimeterPoints = new List<Point>();
+        private List<Platform> Platforms = new List<Platform>();
+        private bool GenerationComplete = false;
 
         private Timer Timer;
         private DateTime StartTime;
@@ -155,6 +160,8 @@ namespace UntitledJumpGameTesting
 
         private List<Platform> GeneratePlatforms(List<Point> outerPoints)
         {
+            Debug.WriteLine("Generating Platforms...");
+
             var platforms = new List<Platform>();
 
             var boundingBox = GetBoundingBox(outerPoints);
@@ -163,13 +170,10 @@ namespace UntitledJumpGameTesting
 
             //Potential bug, if area scaling value too high, could end up with no valid placement
             //for new platform, so even though limit isn't reached program will deadlock in
-            //infinite loop
+            //infinite loop, can also get locked if plat min radius is too small (2)
             double totalArea = GetAreaOfPolygon(outerPoints);
             double maxPlatformArea = totalArea * PlatformAreaScale;
             double combinedPlatformArea = 0;
-
-            //int maxPlatforms = 20;
-            //int currentPlatforms = 0;
 
             while (combinedPlatformArea < maxPlatformArea)
             {
@@ -201,12 +205,21 @@ namespace UntitledJumpGameTesting
                 }
             }
 
+            Debug.WriteLine("Generation Complete");
+
             return platforms;
         }
 
         private void MainForm_Load(object sender, EventArgs e)
         {
+            //Set default values for simulation params
+            NumSides = 10;
+            PlatformMinRadius = 10;
+            PlatformMaxRadius = 20;
+
             NumSidesTextbox.Text = NumSides.ToString();
+            PlatMinRadTextbox.Text = PlatformMinRadius.ToString();
+            PlatMaxRadTextbox.Text = PlatformMaxRadius.ToString();
         }
 
         private void MainForm_Paint(object sender, PaintEventArgs e)
@@ -214,17 +227,10 @@ namespace UntitledJumpGameTesting
             Graphics graphics = e.Graphics;
             Pen pen = new Pen(Color.Black, 5);
 
-            //By making radius 40% of height full shape will take up ~80% of window
-            var outerRadius = (WindowHeight / 5) * 2;
-
-            var outerPerimeterPoints = CalculatePoints(WindowCenter, outerRadius, NumSides);
-
-            if (outerPerimeterPoints.Count > 1 && DrawLayout)
+            if (GenerationComplete && OuterPerimeterPoints.Count > 1)
             {
-                var platforms = GeneratePlatforms(outerPerimeterPoints);
-                DrawPlatforms(graphics, platforms);
-
-                graphics.DrawPolygon(pen, outerPerimeterPoints.ToArray());
+                graphics.DrawPolygon(pen, OuterPerimeterPoints.ToArray());
+                DrawPlatforms(graphics, Platforms);
             }
 
             graphics.Dispose();
@@ -263,7 +269,15 @@ namespace UntitledJumpGameTesting
 
         private void GenerateButton_Click(object sender, EventArgs e)
         {
-            DrawLayout = true;
+            //Add verification here (Is min/max rad > 0 && max > min) dont generate if not valid
+
+            //By making radius 40% of height full shape will take up ~80% of window
+            var outerRadius = (WindowHeight / 5) * 2;
+            OuterPerimeterPoints = CalculatePoints(WindowCenter, outerRadius, NumSides);
+            Platforms = GeneratePlatforms(OuterPerimeterPoints);
+
+            GenerationComplete = true;
+
             Refresh();
         }
 
@@ -273,6 +287,24 @@ namespace UntitledJumpGameTesting
             if (int.TryParse(numSidesTextBox.Text, out int numSides))
             {
                 NumSides = numSides;
+            }
+        }
+
+        private void PlatMinRadTextbox_TextChanged(object sender, EventArgs e)
+        {
+            TextBox platMinRadTextbox = (TextBox)sender;
+            if (int.TryParse(platMinRadTextbox.Text, out int platMinRadius))
+            {
+                PlatformMinRadius = platMinRadius;
+            }
+        }
+
+        private void PlatMaxRadTextbox_TextChanged(object sender, EventArgs e)
+        {
+            TextBox platMaxRadTextbox = (TextBox)sender;
+            if (int.TryParse(platMaxRadTextbox.Text, out int platMaxRadius))
+            {
+                PlatformMaxRadius = platMaxRadius;
             }
         }
     }
