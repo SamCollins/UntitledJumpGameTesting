@@ -92,6 +92,18 @@ namespace UntitledJumpGameTesting
             return Math.Abs(area / 2);
         }
 
+        private double GetBufferedPlatformArea()
+        {
+            double platformAreaWithBuffer = 0;
+            
+            foreach (var platform in Platforms)
+            {
+                platformAreaWithBuffer += platform.GetBufferedArea(MinBufferDistance);
+            }
+
+            return platformAreaWithBuffer;
+        }
+
         private bool IsValidSpawn(List<Point> outerPerimeterPoints, Point platCenterPoint, int platRadius)
         {
             //Initially had BoundingBox check here, but removed since points are only generated using bounding box as min/max
@@ -157,18 +169,14 @@ namespace UntitledJumpGameTesting
             var boundingBox = GetBoundingBox(outerPerimeterPoints);
 
             Random random = new Random();
-
-            //Potential bug, if area scaling value too high, could end up with no valid placement
-            //for new platform, so even though limit isn't reached program will deadlock in
-            //infinite loop, can also get locked if plat min radius is too small (2)
-            //probably cause the added buffer makes no valid spots since so many small plats
-            //Fix will be something like counter/failsafe that checks how many times it tries and fails
-            //to find a valid spot, then breaking loop once that limit is hit. Maybe also include a
-            //min/max of the platform area that needs to be hit, like if it cant find any valid spots
-            //but its at like 80-90% of platform area you can call it good and move on
+            
             double totalArea = GetAreaOfPolygon(outerPerimeterPoints);
             double maxPlatformArea = totalArea * PlatformAreaScale;
             double combinedPlatformArea = 0;
+            double bufferedPlatformArea = 0;
+
+            int generateCount = 0;
+            int failsafeCutoffLimit = 100000;
 
             while (combinedPlatformArea < maxPlatformArea)
             {
@@ -176,20 +184,39 @@ namespace UntitledJumpGameTesting
                         random.Next(boundingBox.MinY, boundingBox.MaxY));
                 var platRadius = random.Next(PlatformMinRadius, PlatformMaxRadius);
 
+                generateCount++;
+
                 if (IsValidSpawn(outerPerimeterPoints, platCenterPoint, platRadius))
                 {
-                    Platforms.Add(new Platform
+                    var newPlatform = new Platform
                     {
                         Center = platCenterPoint,
                         Radius = platRadius,
                         Diameter = platRadius * 2
-                    });
-                    //Adjust this when changing platforms to hexagons ??
-                    combinedPlatformArea += Math.PI * (platRadius * platRadius);
+                    };
+
+                    Platforms.Add(newPlatform);
+                    combinedPlatformArea += newPlatform.GetArea();
+                    bufferedPlatformArea += newPlatform.GetBufferedArea(MinBufferDistance);
+                }
+
+                /*Added Failsafe for two cases that were causing deadlocks:
+                 * Total area of all platforms + their buffer is greater than the total area of the outer polygon
+                 * (Meaning no more space is available, even though maxPlatformArea hasn't been reached)
+                 * Any remaining space in the polygon isn't large enough for even a min radius platform (didn't
+                 * really know how to fix this one so just added a cutoff limit)
+                */
+                if (bufferedPlatformArea >= totalArea || generateCount == failsafeCutoffLimit)
+                {
+                    Debug.WriteLine("Failsafe Cutoff reached.");
+                    Debug.WriteLine("Iteration Reached: {0}/{1}(LIMIT)", generateCount, failsafeCutoffLimit);
+                    Debug.WriteLine("Total Area: {0} Buffered Plat Area: {1}",
+                                totalArea, bufferedPlatformArea);
+                    break;
                 }
             }
 
-            Debug.WriteLine("Generation Complete");
+            Debug.WriteLine("Generation Complete. Total Iterations: {0}", generateCount);
         }
 
         private void MainForm_Load(object sender, EventArgs e)
@@ -298,6 +325,17 @@ namespace UntitledJumpGameTesting
         public Point Center { get; set; }
         public int Radius { get; set; }
         public int Diameter { get; set; }
+
+        public double GetArea()
+        {
+            return Math.PI * (Radius * Radius);
+        }
+
+        public double GetBufferedArea(int buffer)
+        {
+            int bufferedRadius = Radius + buffer;
+            return Math.PI * (bufferedRadius * bufferedRadius);
+        }
     }
 
     public class BoundingBox
