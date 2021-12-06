@@ -18,8 +18,9 @@ namespace UntitledJumpGameTesting
         private Point WindowCenter;
 
         //Simulation Params
-        private int MinBufferDistance = 10;
-        private double PlatformAreaScale = 0.2; //Platforms will take up 20% of space
+        private const int MinBufferDistance = 10;
+        private const double PlatformAreaScale = 0.2; //Platforms will take up 20% of space
+        private const int GenerationFailsafeCutoffLimit = 100000;
 
         //Customizable Params (Set from textboxes)
         private int NumSides;
@@ -37,9 +38,11 @@ namespace UntitledJumpGameTesting
         private bool IsTimerRunning = false;
 
         /*--- Next Steps ---
-         - Figure out different amounts of platforms (low/med/high == 40/50/60 % of total area ???)
+         - Figure out different amounts of platforms (low/med/high == 10/20/30 % of total area ???)
          - Some type of control for switching between amounts of platforms (Dropdown?)
          - Different Platform shapes (Hexagons, maybe others)
+         - Set up simulation based on timer that removes random platforms ever few seconds
+         - Scale how many platforms dissappear per second based on how many platforms there are
          */
 
         public MainForm()
@@ -176,7 +179,6 @@ namespace UntitledJumpGameTesting
             double bufferedPlatformArea = 0;
 
             int generateCount = 0;
-            int failsafeCutoffLimit = 100000;
 
             while (combinedPlatformArea < maxPlatformArea)
             {
@@ -206,10 +208,10 @@ namespace UntitledJumpGameTesting
                  * Any remaining space in the polygon isn't large enough for even a min radius platform (didn't
                  * really know how to fix this one so just added a cutoff limit)
                 */
-                if (bufferedPlatformArea >= totalArea || generateCount == failsafeCutoffLimit)
+                if (bufferedPlatformArea >= totalArea || generateCount == GenerationFailsafeCutoffLimit)
                 {
                     Debug.WriteLine("Failsafe Cutoff reached.");
-                    Debug.WriteLine("Iteration Reached: {0}/{1}(LIMIT)", generateCount, failsafeCutoffLimit);
+                    Debug.WriteLine("Iteration Reached: {0}/{1}(LIMIT)", generateCount, GenerationFailsafeCutoffLimit);
                     Debug.WriteLine("Total Area: {0} Buffered Plat Area: {1}",
                                 totalArea, bufferedPlatformArea);
                     break;
