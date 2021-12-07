@@ -17,12 +17,13 @@ namespace UntitledJumpGameTesting
         private readonly int WindowWidth, WindowHeight = 0;
         private Point WindowCenter;
 
-        //Simulation Params
+        //Generation Params
         private const int MinBufferDistance = 10;
         private const double PlatformAreaScale = 0.2; //Platforms will take up 20% of space
         private const int GenerationFailsafeCutoffLimit = 100000;
+        private const int MinPlatformCount = 10;
 
-        //Customizable Params (Set from textboxes)
+        //Customizable Generation Params (Set from textboxes)
         private int NumSides;
         private int PlatformMinRadius;
         private int PlatformMaxRadius;
@@ -33,9 +34,12 @@ namespace UntitledJumpGameTesting
         private List<Platform> Platforms = new List<Platform>();
         private bool GenerationComplete = false;
 
-        private Timer Timer;
-        private DateTime StartTime;
-        private bool IsTimerRunning = false;
+        //Simulation Params
+        private Timer DisplayTimer;
+        private Timer SimulationTimer;
+        private DateTime SimStartTime;
+        private bool SimulationRunning = false;
+        private List<Platform> InitialPlatforms = new List<Platform>();
 
         /*--- Next Steps ---
          - Figure out different amounts of platforms (low/med/high == 10/20/30 % of total area ???)
@@ -264,21 +268,69 @@ namespace UntitledJumpGameTesting
             }
         }
 
-        private void Timer_Tick(object sender, EventArgs e)
+        private void BeginSimulation()
         {
-            TimeDisplay.Text = string.Format(@"Time : {0:mm\:ss\.ff}", (DateTime.Now - StartTime));
+            SimStartTime = DateTime.Now;
+            InitialPlatforms = new List<Platform>(Platforms);
+
+            DisplayTimer = new Timer { Interval = 100 };
+            DisplayTimer.Tick += new EventHandler(DisplayTimer_Tick);
+
+            SimulationTimer = new Timer { Interval = 1000 };
+            SimulationTimer.Tick += new EventHandler(SimulationTimer_Tick);
+
+            DisplayTimer.Start();
+            SimulationTimer.Start();
+            SimulationRunning = true;
+        }
+
+        private void EndSimulation()
+        {
+            DisplayTimer.Stop();
+            SimulationTimer.Stop();
+            SimulationRunning = false;
+
+            Platforms = new List<Platform>(InitialPlatforms);
+            TimeDisplay.Text = "Time: 00:00.00";
+        }
+
+        private void DisplayTimer_Tick(object sender, EventArgs e)
+        {
+            TimeDisplay.Text = string.Format(@"Time: {0:mm\:ss\.ff}", (DateTime.Now - SimStartTime));
+        }
+
+        private void SimulationTimer_Tick(object sender, EventArgs e)
+        {
+            var simulationTime = DateTime.Now - SimStartTime;
+            Debug.WriteLine("Simulation Tick: {0} seconds passed", simulationTime.Seconds);
+
+            if (GenerationComplete && Platforms.Count() > MinPlatformCount)
+            {
+                Random random = new Random();
+                int randomPlatIndex = random.Next(0, Platforms.Count());
+                Platforms.RemoveAt(randomPlatIndex);
+
+                Refresh();
+            }
         }
 
         private void StartButton_Click(object sender, EventArgs e)
         {
-            Timer = new Timer
+            if (GenerationComplete)
             {
-                Interval = 100
-            };
-            Timer.Tick += new EventHandler(Timer_Tick);
-            StartTime = DateTime.Now;
-            Timer.Start();
-            IsTimerRunning = true;
+                if (!SimulationRunning)
+                {
+                    BeginSimulation();
+                    StartButton.Text = "Stop";
+                }
+                else
+                {
+                    EndSimulation();
+                    StartButton.Text = "Start";
+                }
+
+                Refresh();
+            }
         }
 
         private void GenerateButton_Click(object sender, EventArgs e)
