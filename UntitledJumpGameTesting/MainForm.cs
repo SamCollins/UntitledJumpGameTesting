@@ -47,6 +47,8 @@ namespace UntitledJumpGameTesting
          - Different Platform shapes (Hexagons, maybe others)
          - Set up simulation based on timer that removes random platforms ever few seconds
          - Scale how many platforms dissappear per second based on how many platforms there are
+         - Figure out cleaner way of writing debug info to console (Make toggleable somehow)
+         - Improve single platform generation/simulation logic/timing
          */
 
         public MainForm()
@@ -225,12 +227,54 @@ namespace UntitledJumpGameTesting
             Debug.WriteLine("Generation Complete. Total Iterations: {0}", generateCount);
         }
 
+        private Platform GeneratePlatform()
+        {
+            var outerPerimeterPoints = OuterPerimeterPoints;
+            //var boundingBox = GetBoundingBox(outerPerimeterPoints);
+            var platformCenters = Platforms.Select(p => p.Center).ToList();
+            var boundingBox = GetBoundingBox(platformCenters);
+
+            Random random = new Random();
+
+            int generateCount = 0;
+
+            Platform platform = null;
+
+            while (true)
+            {
+                var platCenterPoint = new Point(random.Next(boundingBox.MinX, boundingBox.MaxX),
+                            random.Next(boundingBox.MinY, boundingBox.MaxY));
+                var platRadius = random.Next(PlatformMinRadius, PlatformMaxRadius);
+
+                generateCount++;
+
+                if (IsValidSpawn(outerPerimeterPoints, platCenterPoint, platRadius))
+                {
+                    platform = new Platform
+                    {
+                        Center = platCenterPoint,
+                        Radius = platRadius,
+                        Diameter = platRadius * 2
+                    };
+                    Debug.WriteLine("Platform Add - Iterations: " + generateCount);
+                    //platformSpawned = true;
+                    break;
+                }
+
+                //Add some debug logging here
+                if (generateCount == GenerationFailsafeCutoffLimit)
+                    break;
+            }
+
+            return platform;
+        }
+
         private void MainForm_Load(object sender, EventArgs e)
         {
             //Set default values for simulation params
             NumSides = 10;
-            PlatformMinRadius = 10;
-            PlatformMaxRadius = 20;
+            PlatformMinRadius = 20;
+            PlatformMaxRadius = 30;
 
             //By making radius 40% of height full shape will take up ~80% of window
             OuterPerimeterRadius = (WindowHeight / 5) * 2;
@@ -306,9 +350,27 @@ namespace UntitledJumpGameTesting
 
             if (GenerationComplete && Platforms.Count() > MinPlatformCount)
             {
+                //Clean this up (Maybe move to own method)
                 Random random = new Random();
-                int randomPlatIndex = random.Next(0, Platforms.Count());
-                Platforms.RemoveAt(randomPlatIndex);
+
+                if (simulationTime.Seconds % 3 == 0)
+                {
+                    //Maybe figure out way of not including new plats in remove random
+                    //Could have seperate list for new plats that gets unioned/concat during Draw?
+                    Platform newPlat = GeneratePlatform();
+                    if (newPlat != null)
+                    {
+                        //int randomPlatIndex = random.Next(0, Platforms.Count());
+                        Platforms.Add(newPlat);
+                        Debug.WriteLine("Platform added");
+                    }
+                }
+                else
+                {
+                    int randomPlatIndex = random.Next(0, Platforms.Count());
+                    Platforms.RemoveAt(randomPlatIndex);
+                    Debug.WriteLine("Platform removed");
+                }
 
                 Refresh();
             }
