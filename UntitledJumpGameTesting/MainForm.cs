@@ -338,35 +338,25 @@ namespace UntitledJumpGameTesting
             TimeDisplay.Text = "Time: 00:00.00";
         }
 
-        private void DisplayTimer_Tick(object sender, EventArgs e)
+        private void SimulationTick(TimeSpan runtime)
         {
-            TimeDisplay.Text = string.Format(@"Time: {0:mm\:ss\.ff}", (DateTime.Now - SimStartTime));
-        }
-
-        private void SimulationTimer_Tick(object sender, EventArgs e)
-        {
-            var simulationTime = DateTime.Now - SimStartTime;
-            Debug.WriteLine("Simulation Tick: {0} seconds passed", simulationTime.Seconds);
-
             if (GenerationComplete && Platforms.Count() > MinPlatformCount)
             {
-                //Clean this up (Maybe move to own method)
-                Random random = new Random();
-
-                if (simulationTime.Seconds % 3 == 0)
+                //Clean this up
+                if (runtime.Seconds % 3 == 0)
                 {
                     //Maybe figure out way of not including new plats in remove random
                     //Could have seperate list for new plats that gets unioned/concat during Draw?
                     Platform newPlat = GeneratePlatform();
                     if (newPlat != null)
                     {
-                        //int randomPlatIndex = random.Next(0, Platforms.Count());
                         Platforms.Add(newPlat);
                         Debug.WriteLine("Platform added");
                     }
                 }
                 else
                 {
+                    Random random = new Random();
                     int randomPlatIndex = random.Next(0, Platforms.Count());
                     Platforms.RemoveAt(randomPlatIndex);
                     Debug.WriteLine("Platform removed");
@@ -374,6 +364,19 @@ namespace UntitledJumpGameTesting
 
                 Refresh();
             }
+        }
+
+        private void DisplayTimer_Tick(object sender, EventArgs e)
+        {
+            TimeDisplay.Text = string.Format(@"Time: {0:mm\:ss\.ff}", (DateTime.Now - SimStartTime));
+        }
+
+        private void SimulationTimer_Tick(object sender, EventArgs e)
+        {
+            var simulationRuntime = DateTime.Now - SimStartTime;
+            Debug.WriteLine("Simulation Tick: {0} seconds passed", simulationRuntime.Seconds);
+
+            SimulationTick(simulationRuntime);
         }
 
         private void StartButton_Click(object sender, EventArgs e)
