@@ -13,6 +13,10 @@ namespace UntitledJumpGameTesting
 {
     public partial class MainForm : Form
     {
+        //Helpers
+        private Helpers Helpers = new Helpers();
+        private bool DebugToggle = false;
+
         //Set up values
         private readonly int WindowWidth, WindowHeight = 0;
         private Point WindowCenter;
@@ -172,7 +176,7 @@ namespace UntitledJumpGameTesting
 
         private void GeneratePlatforms()
         {
-            Debug.WriteLine("Generating Platforms...");
+            Helpers.LogDebug("Generating Platforms...");
 
             var outerPerimeterPoints = OuterPerimeterPoints;
             var boundingBox = GetBoundingBox(outerPerimeterPoints);
@@ -216,15 +220,15 @@ namespace UntitledJumpGameTesting
                 */
                 if (bufferedPlatformArea >= totalArea || generateCount == GenerationFailsafeCutoffLimit)
                 {
-                    Debug.WriteLine("Failsafe Cutoff reached.");
-                    Debug.WriteLine("Iteration Reached: {0}/{1}(LIMIT)", generateCount, GenerationFailsafeCutoffLimit);
-                    Debug.WriteLine("Total Area: {0} Buffered Plat Area: {1}",
-                                totalArea, bufferedPlatformArea);
+                    Helpers.LogDebug("Failsafe Cutoff reached.");
+                    Helpers.LogDebug(string.Format("Iteration Reached: {0}/{1}(LIMIT)", generateCount, GenerationFailsafeCutoffLimit));
+                    Helpers.LogDebug(string.Format("Total Area: {0} Buffered Plat Area: {1}",
+                                totalArea, bufferedPlatformArea));
                     break;
                 }
             }
 
-            Debug.WriteLine("Generation Complete. Total Iterations: {0}", generateCount);
+            Helpers.LogDebug(string.Format("Generation Complete. Total Iterations: {0}", generateCount));
         }
 
         private Platform GeneratePlatform()
@@ -256,7 +260,7 @@ namespace UntitledJumpGameTesting
                         Radius = platRadius,
                         Diameter = platRadius * 2
                     };
-                    Debug.WriteLine("Platform Add - Iterations: " + generateCount);
+                    Helpers.LogDebug("Platform Add - Iterations: " + generateCount);
                     //platformSpawned = true;
                     break;
                 }
@@ -351,7 +355,7 @@ namespace UntitledJumpGameTesting
                     if (newPlat != null)
                     {
                         Platforms.Add(newPlat);
-                        Debug.WriteLine("Platform added");
+                        Helpers.LogDebug("Platform added");
                     }
                 }
                 else
@@ -359,7 +363,7 @@ namespace UntitledJumpGameTesting
                     Random random = new Random();
                     int randomPlatIndex = random.Next(0, Platforms.Count());
                     Platforms.RemoveAt(randomPlatIndex);
-                    Debug.WriteLine("Platform removed");
+                    Helpers.LogDebug("Platform removed");
                 }
 
                 Refresh();
@@ -374,7 +378,7 @@ namespace UntitledJumpGameTesting
         private void SimulationTimer_Tick(object sender, EventArgs e)
         {
             var simulationRuntime = DateTime.Now - SimStartTime;
-            Debug.WriteLine("Simulation Tick: {0} seconds passed", simulationRuntime.Seconds);
+            Helpers.LogDebug(string.Format("Simulation Tick: {0} seconds passed", simulationRuntime.Seconds));
 
             SimulationTick(simulationRuntime);
         }
@@ -427,6 +431,13 @@ namespace UntitledJumpGameTesting
             {
                 PlatformMinRadius = platMinRadius;
             }
+        }
+
+        private void ToggleDebugButton_Click(object sender, EventArgs e)
+        {
+            Helpers.ToggleDebugLogging();
+            DebugToggle = !DebugToggle;
+            ToggleDebugButton.Text = string.Format("Debugging: {0}", DebugToggle ? "On" : "Off");
         }
 
         private void PlatMaxRadTextbox_TextChanged(object sender, EventArgs e)

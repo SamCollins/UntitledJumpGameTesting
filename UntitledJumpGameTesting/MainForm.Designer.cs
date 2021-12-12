@@ -38,13 +38,14 @@ namespace UntitledJumpGameTesting
             this.PlatMinRadTextbox = new System.Windows.Forms.TextBox();
             this.PlatMaxRadLabel = new System.Windows.Forms.Label();
             this.PlatMaxRadTextbox = new System.Windows.Forms.TextBox();
+            this.ToggleDebugButton = new System.Windows.Forms.Button();
             this.SuspendLayout();
             // 
             // GenerateButton
             // 
             this.GenerateButton.Location = new System.Drawing.Point(676, 9);
             this.GenerateButton.Name = "GenerateButton";
-            this.GenerateButton.Size = new System.Drawing.Size(94, 29);
+            this.GenerateButton.Size = new System.Drawing.Size(100, 30);
             this.GenerateButton.TabIndex = 0;
             this.GenerateButton.Text = "Generate";
             this.GenerateButton.UseVisualStyleBackColor = true;
@@ -80,7 +81,7 @@ namespace UntitledJumpGameTesting
             // 
             this.StartButton.Location = new System.Drawing.Point(676, 45);
             this.StartButton.Name = "StartButton";
-            this.StartButton.Size = new System.Drawing.Size(94, 29);
+            this.StartButton.Size = new System.Drawing.Size(100, 30);
             this.StartButton.TabIndex = 5;
             this.StartButton.Text = "Start";
             this.StartButton.UseVisualStyleBackColor = true;
@@ -120,11 +121,22 @@ namespace UntitledJumpGameTesting
             this.PlatMaxRadTextbox.TabIndex = 9;
             this.PlatMaxRadTextbox.TextChanged += new System.EventHandler(this.PlatMaxRadTextbox_TextChanged);
             // 
+            // ToggleDebugButton
+            // 
+            this.ToggleDebugButton.Location = new System.Drawing.Point(626, 81);
+            this.ToggleDebugButton.Name = "ToggleDebugButton";
+            this.ToggleDebugButton.Size = new System.Drawing.Size(150, 30);
+            this.ToggleDebugButton.TabIndex = 10;
+            this.ToggleDebugButton.Text = "Debugging: Off";
+            this.ToggleDebugButton.UseVisualStyleBackColor = true;
+            this.ToggleDebugButton.Click += new System.EventHandler(this.ToggleDebugButton_Click);
+            // 
             // MainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 20F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(782, 753);
+            this.Controls.Add(this.ToggleDebugButton);
             this.Controls.Add(this.PlatMaxRadTextbox);
             this.Controls.Add(this.PlatMaxRadLabel);
             this.Controls.Add(this.PlatMinRadTextbox);
@@ -154,6 +166,7 @@ namespace UntitledJumpGameTesting
         private System.Windows.Forms.TextBox PlatMinRadTextbox;
         private System.Windows.Forms.Label PlatMaxRadLabel;
         private System.Windows.Forms.TextBox PlatMaxRadTextbox;
+        private System.Windows.Forms.Button ToggleDebugButton;
     }
 }
 
